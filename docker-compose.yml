@@ -1,0 +1,36 @@
+volumes:
+  portainer-disk:
+    name: portainer-disk
+
+networks:
+  portainer-net:
+    name: portainer-net
+
+services:
+  portainer:
+    image: portainer/portainer-ce:alpine-sts
+    restart: always
+    container_name: portainer
+    hostname: portainer
+    environment:
+      - TZ=America/Chicago
+    networks:
+      - portainer-net
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer-disk:/data
+    ports:
+      - 80:9000
+      - 443:9443
+
+  cloudflare-tunnel:
+    image: cloudflare/cloudflared:latest
+    restart: always
+    container_name: cloudflare-tunnel
+    hostname: cloudflare-tunnel
+    command: tunnel run
+    environment:
+      - TZ=America/Chicago
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    networks:
+      - portainer-net
